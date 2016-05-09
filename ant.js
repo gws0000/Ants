@@ -19,7 +19,7 @@ var ANT_Game = {
 	maxAge: 30,
 	spawnChance: 0.3,
 	ants: [],
-
+ 
 	//Initializes the simulation
 	//	1)  Calculates some grid size parameters
 	//	2)  Creates a canvas/context for drawing
