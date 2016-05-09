@@ -1,3 +1,4 @@
+//Changed in master
 const DEAD = 0;
 const ALIVE = 1;
 
