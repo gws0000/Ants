@@ -1,3 +1,4 @@
+//Dev 1 branch of GIT
 const DEAD = 0;
 const ALIVE = 1;
 
