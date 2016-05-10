@@ -6,19 +6,10 @@ var ANT_Game = {
 	running: false,
 	c: null,
 	ctx: null,
-	gridPath: null,
-	cs: 20,
 	x0: 50,
 	y0: 50,
 	w: 600,
 	h: 400,
-	cells: [],
-	loops: 0,
-	timeFPS: 0,
-	countFPS: 0,
-	timeLast: 0,
-	maxAge: 30,
-	spawnChance: 0.3,
 	ants: [],
 	lastID: 0,
 	nextID: function() {
@@ -26,9 +17,6 @@ var ANT_Game = {
 	},
   
 	//Initializes the simulation
-	//	1)  Calculates some grid size parameters
-	//	2)  Creates a canvas/context for drawing
-	//  3)  Starts the animation cycle running
 	init: function() {
 		$("BODY").append($("<canvas id='myCanvas' width=" + (ANT_Game.w+2*ANT_Game.x0) +" height=" + (ANT_Game.h + 2*ANT_Game.y0) + "></canvas>"));
 		this.c = $("#myCanvas")[0];
@@ -112,30 +100,15 @@ var ANT_Game = {
 			//Move the ants
 			for (var i=0;i<ANT_Game.ants.length;i++) {
 				//if (ANT_Game.ants[i].state == ALIVE) {
-					ANT_Game.ants[i].applyBehaviours(1/60);
-					ANT_Game.ants[i].update(1/60);
-				/*} else {
-					//The ant is dead, what do we do?  We could have them vanish after a while...
-				}*/
+				ANT_Game.ants[i].applyBehaviours(1/60);
+				ANT_Game.ants[i].update(1/60);
 			}
-			
 		}
 		
 		//Draw the ants
 		for (var i=0;i<ANT_Game.ants.length;i++) {
 			ANT_Game.ants[i].draw(ANT_Game.ctx);
 		}
-
-	
-		//Sort cells by x, then by y, then by age.  This will speed checking for neighbours later on
-		ANT_Game.cells.sort(function(a,b) {
-			if (a.x < b.x) return -1;
-			if (a.x > b.x) return 1;
-			if (a.y < b.y) return -1;
-			if (a.y > b.y) return 1;
-			if (a.age < b.age) return -1;
-			return 1;
-		});
 		
 		//Update the cycle time
 		d = new Date();
@@ -145,7 +118,7 @@ var ANT_Game = {
 		ANT_Game.ctx.textBaseline = "top";
 
 		ANT_Game.ctx.strokeStyle = "black";
-		ANT_Game.ctx.strokeText(ANT_Game.ants.length + " " + (m2-m1), 10,10);
+		ANT_Game.ctx.strokeText(ANT_Game.ants.length + " " + (m2-m1), 10, 10);
 		window.requestAnimationFrame(ANT_Game.getFrame);
 	},
 	
@@ -162,7 +135,7 @@ $(document).ready(function() {ANT_Game.init();});
 
 //And ant that goes in a straight line
 function Ant(x,y) {
-	this.id = ANT_Game.nextID();
+	this.id = ANT_Game.nextID(); //This will be supplied by the server, eventually
 	this.state = ALIVE;
 	this.x=x;
 	this.y=y;
@@ -311,31 +284,3 @@ function drawDead(ctx) {
 	ctx.stroke();
 	ctx.globalAlpha = 1;
 }	
-
-/*
-
-DizzyAnt.prototype.update = function(dt) {
-	this.direction += Math.PI*dt;
-	this.x += Math.cos(this.direction) * this.speed * dt;
-	this.y += Math.sin(this.direction) * this.speed * dt;
-}
-
-
-function zigzag() {
-	Ant.apply(this, arguments);
-	this.direction += Math.PI*45/180;
-	this.color = 'blue';
-	this.counter = 0;
-}
-
-ZiggyAnt.prototype.update = function(dt) {
-	if (this.counter++ == 60) {
-		this.direction -= Math.PI * 90 / 180;
-	} else if (this.counter == 120) {
-		this.counter = 0;
-		this.direction += Math.PI * 90 / 180;
-	}
-	this.x += Math.cos(this.direction) * this.speed * dt;
-	this.y += Math.sin(this.direction) * this.speed * dt;
-}
-*/
