@@ -57,12 +57,6 @@ var ANT_Game = {
 		});
 		this.ctx = this.c.getContext("2d");
 		this.ctx.font = "12px Verdana";
-		//this.ctx.fillStyle = "#CCCCCC";
-		//this.ctx.fillRect(0,0,this.c.width, this.c.height);
-		
-		//this.cells.push(new Cell(10,10));
-		//this.ctx.fillRect(0,0,,600);
-		//this.gridPath = this.setupGrid(this.x0,this.y0,this.w, this.h, this.cs);
 		ANT_Game.getFrame();
 		
 	},
@@ -109,7 +103,6 @@ var ANT_Game = {
 		ANT_Game.ctx.fillStyle = '#EEEEEE';
 		ANT_Game.ctx.fillRect(ANT_Game.x0+2, ANT_Game.y0+2, ANT_Game.w-4, ANT_Game.h-4);
 		
-		//ANT_Game.ctx.stroke(ANT_Game.gridPath);
 		ANT_Game.ctx.textAlign = "center";
 		ANT_Game.ctx.textBaseline = "middle";
 
