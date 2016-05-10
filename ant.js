@@ -37,7 +37,7 @@ var ANT_Game = {
 			//Location is set with e.offsetX and e.offsetY
 			//Is this a click in the grid?
 			if (e.offsetX > ANT_Game.x0 && e.offsetX < ANT_Game.x0+ANT_Game.w && e.offsetY > ANT_Game.y0 && e.offsetY < ANT_Game.y0+ANT_Game.h) {
-				var a = new Ant(e.offsetX, e.offsetY, 0, 0);
+				var a = new Ant(e.offsetX, e.offsetY);
 				var type = $("#antType").val();
 				var b = new AntBehaviour(a);
 				switch (type) {
@@ -168,13 +168,13 @@ var ANT_Game = {
 $(document).ready(function() {ANT_Game.init();});
 
 //And ant that goes in a straight line
-function Ant(x,y,direction, speed) {
+function Ant(x,y) {
 	this.id = ANT_Game.nextID();
 	this.state = ALIVE;
 	this.x=x;
 	this.y=y;
-	this.direction = direction;
-	this.speed = speed;
+	this.direction = 0;
+	this.speed = 0;
 	this.color = "black";
 	this.opacity = 1.0;
 	this.behaviours = [];
