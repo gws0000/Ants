@@ -1,4 +1,4 @@
-//Changed in master
+//Changed in VM
 const DEAD = 0;
 const ALIVE = 1;
 
