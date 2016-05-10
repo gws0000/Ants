@@ -33,17 +33,20 @@ var ANT_Game = {
 			//Location is set with e.offsetX and e.offsetY
 			//Is this a click in the grid?
 			if (e.offsetX > ANT_Game.x0 && e.offsetX < ANT_Game.x0+ANT_Game.w && e.offsetY > ANT_Game.y0 && e.offsetY < ANT_Game.y0+ANT_Game.h) {
-				var a = new DizzyAnt(e.offsetX, e.offsetY, 0, 10);
+				var a = new Ant(e.offsetX, e.offsetY, 0, 0);
+				var type = $("#antType").val();
+				var b = new AntBehavior(a);
+				switch (type) {
+					case '0':
+						b.apply = runAnt(10, Math.PI/2);
+						break;
+					case '1':
+						b.apply = spinAnt(30);
+						break;
+				}
+				a.addBehaviour(b);
 				ANT_Game.ants.push(a);
-				
-				var a = new Ant(e.offsetX-50, e.offsetY-50, 0, 5);
-				ANT_Game.ants.push(a);
-				
-				var z = new ZiggyAnt(e.offsetX+50, e.offsetY+50, 0, 5);
-				ANT_Game.ants.push(z);
-				
 			}
-			
 		});
 		this.ctx = this.c.getContext("2d");
 		this.ctx.font = "12px Verdana";
@@ -54,6 +57,7 @@ var ANT_Game = {
 		this.ctx.fillRect(0,0,800,600);
 		this.gridPath = this.setupGrid(this.x0,this.y0,this.w, this.h, this.cs);
 		ANT_Game.getFrame();
+		
 	},
 	
 	//Builds a static path for the grid so redrawing is quick
@@ -97,6 +101,7 @@ var ANT_Game = {
 			
 			//Move the ants
 			for (var i=0;i<ANT_Game.ants.length;i++) {
+				ANT_Game.ants[i].applyBehaviours(1/60);
 				ANT_Game.ants[i].update(1/60);
 			}
 			
@@ -150,11 +155,12 @@ function Cell(x,y) {
 
 //And ant that goes in a straight line
 function Ant(x,y,direction, speed) {
-		this.x=x;
-		this.y=y;
-		this.direction = direction;
-		this.speed = speed;
-		this.color = "black";
+	this.x=x;
+	this.y=y;
+	this.direction = direction;
+	this.speed = speed;
+	this.color = "black";
+	this.behaviors = [];
 }
 
 Ant.prototype.update = function(dt) {
@@ -172,13 +178,45 @@ Ant.prototype.draw = function(ctx) {
 	ctx.stroke();
 }
 
-//An ant that goes in a circle
-DizzyAnt.prototype = new Ant();
-
-function DizzyAnt(x,y,direction,speed) {
-	Ant.apply(this, arguments);
-	this.color = "red";
+Ant.prototype.addBehaviour = function(b) {
+	this.behaviors.push(b);
 }
+
+Ant.prototype.applyBehaviours = function(dt) {
+	for (var i=0;i<this.behaviors.length;i++) {
+		this.behaviors[i].apply(dt);
+	}
+}
+
+function AntBehavior(ant) {
+	this.complete = false;
+	this.ant = ant;
+	this.apply = function(dt) {}	
+}
+
+//Behaviour functions
+//Goes in a circle, turning at rate degrees/second
+function spinAnt(rate) {
+	var rate = rate;
+	return function(dt) {
+		this.ant.direction += Math.PI*dt*rate/180;
+		this.complete = false;
+	}
+}
+
+//Ant runs off in a straight line
+function runAnt(speed, direction) {
+	var speed = speed;
+	var direction = direction;
+	return function(dt) {
+		this.ant.direction = direction;
+		this.ant.speed = speed;
+	}
+}
+
+
+
+/*
 
 DizzyAnt.prototype.update = function(dt) {
 	this.direction += Math.PI*dt;
@@ -186,10 +224,8 @@ DizzyAnt.prototype.update = function(dt) {
 	this.y += Math.sin(this.direction) * this.speed * dt;
 }
 
-//An any that zig/zags
-ZiggyAnt.prototype = new Ant();
 
-function ZiggyAnt(x,y,direction,speed) {
+function zigzag() {
 	Ant.apply(this, arguments);
 	this.direction += Math.PI*45/180;
 	this.color = 'blue';
@@ -206,3 +242,4 @@ ZiggyAnt.prototype.update = function(dt) {
 	this.x += Math.cos(this.direction) * this.speed * dt;
 	this.y += Math.sin(this.direction) * this.speed * dt;
 }
+*/
