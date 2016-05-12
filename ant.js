@@ -12,6 +12,7 @@ var ANT_Game = {
 	h: 400,
 	ants: [],
 	lastID: 0,
+	lastTime: 0,
 	nextID: function() {
 		return this.lastID++;
 	},
@@ -34,6 +35,9 @@ var ANT_Game = {
 						break;
 					case '1':
 						b.apply = spinAnt(20, 30);
+						break;
+					case '2':
+						b.apply = bounceAnt(20, Math.random()*2*Math.PI);
 						break;
 				}
 				a.addBehaviour(b);
@@ -96,12 +100,13 @@ var ANT_Game = {
 
 		//Only change things if the simulation is "running"
 		if (ANT_Game.running) {
-			
 			//Move the ants
 			for (var i=0;i<ANT_Game.ants.length;i++) {
 				//if (ANT_Game.ants[i].state == ALIVE) {
-				ANT_Game.ants[i].applyBehaviours(1/60);
-				ANT_Game.ants[i].update(1/60);
+				var dt = (m1-ANT_Game.lastTime)/1000;
+				dt = 1/60;
+				ANT_Game.ants[i].applyBehaviours(dt);
+				ANT_Game.ants[i].update(dt);
 			}
 		}
 		
@@ -120,6 +125,8 @@ var ANT_Game = {
 		ANT_Game.ctx.strokeStyle = "black";
 		ANT_Game.ctx.strokeText(ANT_Game.ants.length + " " + (m2-m1), 10, 10);
 		window.requestAnimationFrame(ANT_Game.getFrame);
+		
+		ANT_Game.lastTime = m1; //Store for the next cycle
 	},
 	
 	//Keep cells inside the box
@@ -140,10 +147,21 @@ function Ant(x,y) {
 	this.x=x;
 	this.y=y;
 	this.direction = 0;
+	this.dx = 0;
+	this.dy = 0;
 	this.speed = 0;
 	this.color = "black";
 	this.opacity = 1.0;
 	this.behaviours = [];
+}
+
+Ant.prototype.setDirection = function(d) {
+	while (d<0) {d += 2*Math.PI}
+	while (d>2*Math.PI) {d -= 2*Math.PI}
+	
+	this.direction = d;
+	this.dx = Math.cos(d);
+	this.dy = Math.sin(d);
 }
 
 Ant.prototype.die = function() {
@@ -156,8 +174,9 @@ Ant.prototype.die = function() {
 }
 
 Ant.prototype.update = function(dt) {
-	this.x += Math.cos(this.direction) * this.speed * dt;
-	this.y += Math.sin(this.direction) * this.speed * dt;
+	
+	this.x += this.dx * this.speed * dt;
+	this.y += this.dy * this.speed * dt;
 	
 	//Keep the direction between 0 and 2 PI, for simplicity.
 	if (this.direction > Math.PI*2) this.direction -= Math.PI*2;
@@ -172,7 +191,7 @@ Ant.prototype.draw = function(ctx) {
 	//ctx.moveTo(this.x, this.y);
 	ctx.arc(this.x, this.y, 3, 0, 2*Math.PI);
 	ctx.moveTo(this.x,this.y);
-	ctx.lineTo(this.x-Math.cos(this.direction)*10, this.y-Math.sin(this.direction)*10 );
+	ctx.lineTo(this.x-this.dx*10, this.y - this.dy*10 );
 	ctx.stroke();
 	ctx.globalAlpha = 1.0;
 }
@@ -206,7 +225,7 @@ function spinAnt(speed, rate) {
 	var rate = rate;
 	var speed = speed;
 	return function(dt) {
-		this.ant.direction += Math.PI*dt*rate/180;
+		this.ant.setDirection(this.ant.direction + Math.PI*dt*rate/180);
 		this.ant.speed = speed;
 		this.complete = false;
 		if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
@@ -221,7 +240,7 @@ function runAnt(speed, direction) {
 	var speed = speed;
 	var direction = direction;
 	return function(dt) {
-		this.ant.direction = direction;
+		this.ant.setDirection(direction);
 		this.ant.speed = speed;
 		if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
 			this.complete = true;
@@ -234,19 +253,23 @@ function runAnt(speed, direction) {
 function bounceAnt(speed, direction) {
 	var speed = speed;
 	var direction = direction;
+	var setupComplete = false;
 	return function(dt) {
-		this.ant.direction = direction;
-		this.ant.speed = speed;
+		if (!setupComplete) {
+			this.ant.setDirection(direction);
+			this.ant.speed = speed;
+			setupComplete = true;
+		}
 		if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
 			//Bounce
-			if (this.ant.x < ANT_Game.x0) { //Left edge
-				
-			} else if (this.ant.y < ANT_Game.y0) { //Top edge
-				
-			} else if (this.ant.x > ANT_Game.x0+ANT_Game.h) {//Right edge
-			
+			if (this.ant.x < ANT_Game.x0 && this.ant.dx < 0) { //Left edge
+				this.ant.dx = -1 * this.ant.dx;
+			} else if (this.ant.y < ANT_Game.y0 && this.ant.dy < 0) { //Top edge
+				this.ant.dy = -1 * this.ant.dy;
+			} else if (this.ant.x > ANT_Game.x0+ANT_Game.h && this.ant.dx > 0) {//Right edge
+				this.ant.dx = -1 * this.ant.dx;
 			} else { //Bottom
-				
+				if (this.ant.dy > 0) this.ant.dy = -1 * this.ant.dy;
 			}
 		}
 	}
