@@ -2,6 +2,9 @@
 const DEAD = 0;
 const ALIVE = 1;
 
+//Initialize the game when ready
+$(document).ready(function() {ANT_Game.init();});
+
 var ANT_Game = {
 	running: false,
 	c: null,
@@ -142,8 +145,6 @@ var ANT_Game = {
 	}
 }
 
-$(document).ready(function() {ANT_Game.init();});
-
 //And ant that goes in a straight line
 function Ant(x,y) {
 	this.id = ANT_Game.nextID(); //This will be supplied by the server, eventually
@@ -204,27 +205,8 @@ Ant.prototype.update = function(dt) {
 }
 
 //Draw the ant on the screen
-Ant.prototype.draw = function(ctx) {
-	ctx.beginPath();
-	ctx.strokeStyle = this.color;
-	ctx.globalAlpha = this.opacity;
+Ant.prototype.draw = drawAlive;
 
-	//Head
-	ctx.arc(this.x, this.y, 3, 0, 2*Math.PI);
-	
-	//Trailing line, showing direction
-	ctx.moveTo(this.x,this.y);
-	ctx.lineTo(this.x-this.dx*10, this.y - this.dy*10 );
-	
-	/*
-	Body segments, showing direction
-	*/
-	ctx.arc(this.x-6*this.dx, this.y-6*this.dy, 3, 0, 2*Math.PI);
-	ctx.arc(this.x-12*this.dx, this.y-12*this.dy, 3, 0, 2*Math.PI);
-	
-	ctx.stroke();
-	ctx.globalAlpha = 1.0;
-}
 
 //Assign a behaviour to an ant
 Ant.prototype.addBehaviour = function(b) {

@@ -64,6 +64,7 @@ function bounceAnt(speed, direction) {
 					this.ant.setDirectionXY(-1*this.ant.dx, this.ant.dy);
 				} else { //Bottom
 					if (this.ant.dy > 0) this.ant.setDirectionXY(this.ant.dx, -1*this.ant.dy);
+				}
 			}
 		} else {
 			this.complete = true;
