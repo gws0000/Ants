@@ -2,6 +2,8 @@
 const DEAD = 0;
 const ALIVE = 1;
 
+$("BODY").append("<script src='ant.draw.js'></script>");
+$("BODY").append("<script src='ant.behaviour.js'></script>");
 var ANT_Game = {
 	running: false,
 	c: null,
@@ -42,6 +44,10 @@ var ANT_Game = {
 				}
 				a.addBehaviour(b);
 				ANT_Game.ants.push(a);
+				
+				var k = new AntBehaviour(a);
+				k.apply = edgeKillAnt();
+				a.addBehaviour(a);
 				
 				var alive = $("#antAlive").val();
 				if (alive == '0') a.die(); //"Kill" the ant
@@ -155,6 +161,7 @@ function Ant(x,y) {
 	this.behaviours = [];
 }
 
+//Set direction, calculate unit vector coordinates
 Ant.prototype.setDirection = function(d) {
 	while (d<0) {d += 2*Math.PI}
 	while (d>2*Math.PI) {d -= 2*Math.PI}
@@ -164,6 +171,20 @@ Ant.prototype.setDirection = function(d) {
 	this.dy = Math.sin(d);
 }
 
+//Set direction from vector coordinates
+this.prototype.setDirectionXY = function(dx, dy) {
+	this.dx = dx;
+	this.dy = dy;
+	
+	if (dx != 0) {
+		this.direction = Math.atan(dy/dx);
+	} else {
+		if (dy > 0) this.direction = Math.PI/2;
+		if (dy < 0) this.direction = Math.PI/-2;
+	}
+}
+
+//Kill the ant
 Ant.prototype.die = function() {
 	this.state = DEAD;
 	this.draw = drawDead;
@@ -173,6 +194,7 @@ Ant.prototype.die = function() {
 	this.addBehaviour(b);
 }
 
+//Update the ant
 Ant.prototype.update = function(dt) {
 	
 	this.x += this.dx * this.speed * dt;
@@ -188,10 +210,20 @@ Ant.prototype.draw = function(ctx) {
 	ctx.beginPath();
 	ctx.strokeStyle = this.color;
 	ctx.globalAlpha = this.opacity;
-	//ctx.moveTo(this.x, this.y);
+
+	//Head
 	ctx.arc(this.x, this.y, 3, 0, 2*Math.PI);
+	
+	//Trailing line, showing direction
 	ctx.moveTo(this.x,this.y);
 	ctx.lineTo(this.x-this.dx*10, this.y - this.dy*10 );
+	
+	/*
+	Body segments, showing direction
+	*/
+	ctx.arc(this.x-6*this.dx, this.y-6*this.dy, 3, 0, 2*Math.PI);
+	ctx.arc(this.x-12*this.dx, this.y-12*this.dy, 3, 0, 2*Math.PI);
+	
 	ctx.stroke();
 	ctx.globalAlpha = 1.0;
 }
@@ -212,98 +244,3 @@ Ant.prototype.applyBehaviours = function(dt) {
 	while (completeList.length>0) {this.behaviours.splice(completeList.pop(),1);}
 }
 
-//Object to store standard behaviours.
-function AntBehaviour(ant) {
-	this.complete = false;
-	this.ant = ant;
-	this.apply = function(dt) {}	
-}
-
-//Behaviour functions
-//Goes in a circle, turning at rate degrees/second
-function spinAnt(speed, rate) {
-	var rate = rate;
-	var speed = speed;
-	return function(dt) {
-		this.ant.setDirection(this.ant.direction + Math.PI*dt*rate/180);
-		this.ant.speed = speed;
-		this.complete = false;
-		if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
-			this.complete = true;
-			this.ant.die();	
-		}
-	}
-}
-
-//Ant runs off in a straight line and dies when it hits the edge
-function runAnt(speed, direction) {
-	var speed = speed;
-	var direction = direction;
-	return function(dt) {
-		this.ant.setDirection(direction);
-		this.ant.speed = speed;
-		if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
-			this.complete = true;
-			this.ant.die(); 
-		}
-	}
-}
-
-//Ant bounces around the screen
-function bounceAnt(speed, direction) {
-	var speed = speed;
-	var direction = direction;
-	var setupComplete = false;
-	return function(dt) {
-		if (!setupComplete) {
-			this.ant.setDirection(direction);
-			this.ant.speed = speed;
-			setupComplete = true;
-		}
-		if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
-			//Bounce
-			if (this.ant.x < ANT_Game.x0 && this.ant.dx < 0) { //Left edge
-				this.ant.dx = -1 * this.ant.dx;
-			} else if (this.ant.y < ANT_Game.y0 && this.ant.dy < 0) { //Top edge
-				this.ant.dy = -1 * this.ant.dy;
-			} else if (this.ant.x > ANT_Game.x0+ANT_Game.h && this.ant.dx > 0) {//Right edge
-				this.ant.dx = -1 * this.ant.dx;
-			} else { //Bottom
-				if (this.ant.dy > 0) this.ant.dy = -1 * this.ant.dy;
-			}
-		}
-	}
-}
-
-function rotAnt() {
-	var timeLeft = 2; //Rot away 2 seconds after the behaviour was added
-	
-	return function(dt) {
-		if (timeLeft-dt > 0) {
-			timeLeft -= dt;
-			//The ant is drawn progressively lighter.
-			this.ant.opacity = timeLeft/2.0;
-		} else {
-			//This ant has rotted away, time to remove me from the game...
-			this.ant.opacity = 0;
-			this.complete = true;
-		}
-	}
-}
-
-//Draw a dead ant
-function drawDead(ctx) {
-	ctx.beginPath();
-	ctx.globalAlpha = this.opacity;
-	ctx.strokeStyle = this.color;
-	//ctx.moveTo(this.x, this.y);
-	ctx.arc(this.x, this.y, 3, 0, 2*Math.PI);
-
-	ctx.moveTo(this.x-3, this.y-3);
-	ctx.lineTo(this.x+3, this.y+3);
-	ctx.moveTo(this.x+3, this.y-3);
-	ctx.lineTo(this.x-3, this.y+3);
-
-	ctx.stroke();
-	ctx.globalAlpha = 1;
-}	
