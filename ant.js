@@ -2,8 +2,6 @@
 const DEAD = 0;
 const ALIVE = 1;
 
-$("BODY").append("<script src='ant.draw.js'></script>");
-$("BODY").append("<script src='ant.behaviour.js'></script>");
 var ANT_Game = {
 	running: false,
 	c: null,
@@ -47,7 +45,7 @@ var ANT_Game = {
 				
 				var k = new AntBehaviour(a);
 				k.apply = edgeKillAnt();
-				a.addBehaviour(a);
+				a.addBehaviour(k);
 				
 				var alive = $("#antAlive").val();
 				if (alive == '0') a.die(); //"Kill" the ant
@@ -110,7 +108,7 @@ var ANT_Game = {
 			for (var i=0;i<ANT_Game.ants.length;i++) {
 				//if (ANT_Game.ants[i].state == ALIVE) {
 				var dt = (m1-ANT_Game.lastTime)/1000;
-				dt = 1/60;
+				dt = 1/60; //Temporary, debugging makes cycles take a long time and breaks the game
 				ANT_Game.ants[i].applyBehaviours(dt);
 				ANT_Game.ants[i].update(dt);
 			}
@@ -172,7 +170,7 @@ Ant.prototype.setDirection = function(d) {
 }
 
 //Set direction from vector coordinates
-this.prototype.setDirectionXY = function(dx, dy) {
+Ant.prototype.setDirectionXY = function(dx, dy) {
 	this.dx = dx;
 	this.dy = dy;
 	

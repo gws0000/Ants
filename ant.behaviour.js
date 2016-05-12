@@ -33,8 +33,12 @@ function runAnt(speed, direction) {
 	var speed = speed;
 	var direction = direction;
 	return function(dt) {
-		this.ant.setDirection(direction);
-		this.ant.speed = speed;
+		if (this.ant.state == ALIVE) {
+			this.ant.setDirection(direction);
+			this.ant.speed = speed;
+		} else {
+			this.complete = true;
+		}
 	}
 }
 
@@ -49,27 +53,35 @@ function bounceAnt(speed, direction) {
 			this.ant.speed = speed;
 			setupComplete = true;
 		}
-		if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
-			//Bounce
-			if (this.ant.x < ANT_Game.x0 && this.ant.dx < 0) { //Left edge
-				this.ant.dx = -1 * this.ant.dx;
-			} else if (this.ant.y < ANT_Game.y0 && this.ant.dy < 0) { //Top edge
-				this.ant.dy = -1 * this.ant.dy;
-			} else if (this.ant.x > ANT_Game.x0+ANT_Game.h && this.ant.dx > 0) {//Right edge
-				this.ant.dx = -1 * this.ant.dx;
-			} else { //Bottom
-				if (this.ant.dy > 0) this.ant.dy = -1 * this.ant.dy;
+		if (this.ant.state == ALIVE) {
+			if (this.ant.x > ANT_Game.x0+ANT_Game.w || this.ant.x < ANT_Game.x0 || this.ant.y < ANT_Game.y0 || this.ant.y > ANT_Game.y0+ANT_Game.h) {
+				//Bounce
+				if (this.ant.x < ANT_Game.x0 && this.ant.dx < 0) { //Left edge
+					this.ant.setDirectionXY(-1*this.ant.dx, this.ant.dy);
+				} else if (this.ant.y < ANT_Game.y0 && this.ant.dy < 0) { //Top edge
+					this.ant.setDirectionXY(this.ant.dx, -1*this.ant.dy);
+				} else if (this.ant.x > ANT_Game.x0+ANT_Game.h && this.ant.dx > 0) {//Right edge
+					this.ant.setDirectionXY(-1*this.ant.dx, this.ant.dy);
+				} else { //Bottom
+					if (this.ant.dy > 0) this.ant.setDirectionXY(this.ant.dx, -1*this.ant.dy);
 			}
+		} else {
+			this.complete = true;
 		}
 	}
 }
 
+//Travels to a specific location
 function gotoAnt(speed, end_x, end_y) {
 	var speed = speed;
 	var x = end_x;
 	var y = end_y;
 	
 	return function(dt) {
+		if (this.ant.state != ALIVE) {
+			this.complete = true;
+			return;
+		}
 		//Are we there yet...
 		var d = (x - this.ant.x)^2 + (y - this.ant.y)^2;
 		var rd = sqrt(d);
@@ -78,9 +90,7 @@ function gotoAnt(speed, end_x, end_y) {
 		} else {
 			//Make sure we are on target
 			this.ant.setDirectionXY((x-this.ant.x)/rd, (y-this.ant.y)/rd);
-			
 		}
-	
 	}
 }
 
@@ -91,6 +101,10 @@ function forageAnt(speed, direction) {
 	var setupComplete = false;
 	var trail = []; //The "ant" will store where it has been and gradually move away from its starting position
 	return function(dt) {
+		if (this.state != ALIVE) {
+			this.complete = true;
+			return;
+		}
 		if (!setupComplete) {
 			this.ant.speed = speed;
 			this.and.setDirection(direction);
@@ -99,6 +113,7 @@ function forageAnt(speed, direction) {
  	}
 }
 
+//Gradually fades away over 2 seconds
 function rotAnt() {
 	var timeLeft = 2; //Rot away 2 seconds after the behaviour was added
 	
