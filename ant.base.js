@@ -1,4 +1,4 @@
-//And ant that goes in a straight line
+//And ant that goes in a straight line (Develop)
 function Ant(x,y) {
 	this.id = ANT_Game.nextID(); //This will be supplied by the server, eventually
 	this.state = ALIVE;
